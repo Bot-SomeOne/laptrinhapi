@@ -129,6 +129,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static POINT pt;
     switch (message)
     {
+    case WM_PAINT:
+    {
+        // ve diem anh
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWnd, &ps);
+		for (int i = 0; i < 100; i++) {
+			SetPixel(hdc, i, i, RGB(255, 0, 0));
+		}
+		EndPaint(hWnd, &ps);
+
+    }
+        break;
     case WM_CREATE:
         // Load menu từ resource
         hMenuE = LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDC_TEST1));
@@ -204,14 +216,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
             }
-        }
-        break;
-    case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: Add any drawing code that uses hdc here...
-            EndPaint(hWnd, &ps);
         }
         break;
     case WM_DESTROY:
