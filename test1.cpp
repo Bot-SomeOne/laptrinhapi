@@ -149,17 +149,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_PAINT: // Khi cần vẽ lại cửa sổ
     {
-        // ve diem anh
         PAINTSTRUCT ps;
-        hdc = BeginPaint(hWnd, &ps);
-		//for (int i = 0; i < 100; i++) {
-		//	SetPixel(hdc, i, i, RGB(255, 0, 0));
-		//}
-		MoveToEx(hdc, 0, 0, NULL);
-		LineTo(hdc, width, height);
+        HDC hdc = BeginPaint(hWnd, &ps);
 
-		EndPaint(hWnd, &ps);
+        // Tính toán vị trí trung tâm
+        int centerX = width / 2;
+        int centerY = height / 2;
 
+        Rectangle(hdc, width / 8, height / 8, 7 * width / 8, 7 * height / 8);
+
+        // Vẽ 2 đoạn thẳng cắt chéo qua trung tâm
+        MoveToEx(hdc, 0, 0, NULL); // Góc trên trái
+        LineTo(hdc, width, height); // Góc dưới phải
+
+        MoveToEx(hdc, 0, height, NULL); // Góc dưới trái
+        LineTo(hdc, width, 0); // Góc trên phải
+        
+        Ellipse(hdc, width / 8, height / 8, 7 * width / 8, 7 * height / 8);
+        RoundRect(hdc, width / 4, height / 4, 3 * width / 4, 3 * height / 4, 20, 10);
+
+        EndPaint(hWnd, &ps);
     }
         break;
 	case WM_CREATE: // Khi cửa sổ được tạo
