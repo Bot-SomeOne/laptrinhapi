@@ -127,21 +127,42 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static HMENU hCurrentMenu, hPopupMenu;
 
     static POINT pt;
+
+    static HDC hdc;
+	static int width, height;
     switch (message)
     {
-    case WM_PAINT:
+	case WM_SIZE: // Khi cửa sổ thay đổi kích thước
+		// Lấy kích thước cửa sổ
+		width = LOWORD(lParam);
+		height = HIWORD(lParam);
+		hdc = GetDC(hWnd);
+		// TODO
+
+		break;
+	case WM_LBUTTONDOWN: // Khi nhấn chuột trái
+		hdc = GetDC(hWnd);
+        // TODO
+		SetPixel(hdc, LOWORD(lParam), HIWORD(lParam), RGB(255, 0, 0));
+		ReleaseDC(hWnd, hdc); //  
+		break;
+
+	case WM_PAINT: // Khi cần vẽ lại cửa sổ
     {
         // ve diem anh
         PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hWnd, &ps);
-		for (int i = 0; i < 100; i++) {
-			SetPixel(hdc, i, i, RGB(255, 0, 0));
-		}
+        hdc = BeginPaint(hWnd, &ps);
+		//for (int i = 0; i < 100; i++) {
+		//	SetPixel(hdc, i, i, RGB(255, 0, 0));
+		//}
+		MoveToEx(hdc, 0, 0, NULL);
+		LineTo(hdc, width, height);
+
 		EndPaint(hWnd, &ps);
 
     }
         break;
-    case WM_CREATE:
+	case WM_CREATE: // Khi cửa sổ được tạo
         // Load menu từ resource
         hMenuE = LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDC_TEST1));
         hMenuV = LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MENU1));
@@ -153,7 +174,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             MessageBox(hWnd, L"Không thể load menu.", L"Lỗi", MB_ICONERROR);
         }
         break;
-    case WM_RBUTTONDOWN: {
+	case WM_RBUTTONDOWN: { // Khi nhấn chuột phải
         // Lấy vị trí chuột
         POINT pt;
         pt.x = LOWORD(lParam);
@@ -174,7 +195,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
 
-    case WM_COMMAND:
+	case WM_COMMAND: // Khi có lệnh từ menu
         {
             int wmId = LOWORD(wParam);
             // Parse the menu selections:
@@ -218,10 +239,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
-    case WM_DESTROY:
+	case WM_DESTROY: // Khi cửa sổ bị hủy
         PostQuitMessage(0);
-        break;
-    case WM_CLOSE:
+        break; 
+	case WM_CLOSE: // Khi cửa sổ được đóng
         if (MessageBox(hWnd, L"Bạn có chắc chắn muốn thoát?", L"Xác nhận", MB_YESNO | MB_ICONQUESTION) == IDYES) {
             PostQuitMessage(0);
         }
