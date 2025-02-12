@@ -149,6 +149,44 @@ void Day_12_02_25(HDC hdc, int width, int height) {
     DeleteObject(hPenYellow);
 }
 
+void Day_12_02_25_Ex2(HDC hdc, int width, int height) {
+    HPEN hPenGreen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
+    HPEN hPenBlack = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+    //HPEN hPenBlack = GetStockObject(BLACK_PEN);
+    HPEN hPenYellow = CreatePen(PS_DOT, 3, RGB(255, 255, 0));
+
+	HBRUSH hBrushViolet = CreateHatchBrush(HS_DIAGCROSS, RGB(238, 130, 238));
+	HBRUSH bBrushLightBlue = CreateSolidBrush(RGB(0, 255, 255));
+
+    // Tính toán vị trí trung tâm
+    int centerX = width / 2;
+    int centerY = height / 2;
+
+    SelectObject(hdc, hPenBlack);
+	SelectObject(hdc, hBrushViolet);
+    Rectangle(hdc, width / 8, height / 8, 7 * width / 8, 7 * height / 8);
+
+    SelectObject(hdc, hPenGreen);
+    // Vẽ 2 đoạn thẳng cắt chéo qua trung tâm
+    MoveToEx(hdc, 0, 0, NULL); // Góc trên trái
+    LineTo(hdc, width, height); // Góc dưới phải
+
+    MoveToEx(hdc, 0, height, NULL); // Góc dưới trái
+    LineTo(hdc, width, 0); // Góc trên phải
+
+    SelectObject(hdc, hPenYellow);
+	SelectObject(hdc, bBrushLightBlue);
+    Ellipse(hdc, width / 8, height / 8, 7 * width / 8, 7 * height / 8);
+    RoundRect(hdc, width / 4, height / 4, 3 * width / 4, 3 * height / 4, 20, 10);
+
+    // destroy pen - thuong xu dung trong WM_DESTROY
+    DeleteObject(hPenGreen);
+    DeleteObject(hPenBlack);
+    DeleteObject(hPenYellow);
+
+	DeleteObject(hBrushViolet);
+	DeleteObject(bBrushLightBlue);
+}
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -190,7 +228,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
 
-		Day_12_02_25(hdc, width, height);
+        Day_12_02_25_Ex2(hdc, width, height);
 
         EndPaint(hWnd, &ps);
     }
@@ -230,46 +268,46 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_COMMAND: // Khi có lệnh từ menu
         {
-            int wmId = LOWORD(wParam);
-            // Parse the menu selections:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                /*DestroyWindow(hWnd);*/
-                if (MessageBox(hWnd, L"Bạn có chắc chắn muốn thoát?", L"Xác nhận", MB_YESNO | MB_ICONQUESTION) == IDYES) {
-                    DestroyWindow(hWnd);
-                }
-                break;
-            case ID_LANGUAGES_ENGLISH:
-                hCurrentMenu = hMenuE;
-                SetMenu(hWnd, hCurrentMenu);
-                DrawMenuBar(hWnd); // Vẽ lại menu
-                break;
-            case ID_LANGUAGES_VIETNAMESE:
-                hCurrentMenu = hMenuV;
-                SetMenu(hWnd, hCurrentMenu);
-                DrawMenuBar(hWnd); // Vẽ lại menu
-                break;
-            case ID_NGONNGU_TIENGANH:
-                hCurrentMenu = hMenuE;
-                SetMenu(hWnd, hCurrentMenu);
-                DrawMenuBar(hWnd); // Vẽ lại menu
-                break;
-            case ID_NGONNGU_TIENGVIET:
-                hCurrentMenu = hMenuV;
-                SetMenu(hWnd, hCurrentMenu);
-                DrawMenuBar(hWnd); // Vẽ lại menu
-                break;
-            case ID_THUMUC_DONG:
-                MessageBox(hWnd, L"Dong Thu Muc", L"Xac Nhan", MB_YESNO);
-                break;
-
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
+        int wmId = LOWORD(wParam);
+        // Parse the menu selections:
+        switch (wmId)
+        {
+        case IDM_ABOUT:
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+            break;
+        case IDM_EXIT:
+            /*DestroyWindow(hWnd);*/
+            if (MessageBox(hWnd, L"Bạn có chắc chắn muốn thoát?", L"Xác nhận", MB_YESNO | MB_ICONQUESTION) == IDYES) {
+                DestroyWindow(hWnd);
             }
+            break;
+        case ID_LANGUAGES_ENGLISH:
+            hCurrentMenu = hMenuE;
+            SetMenu(hWnd, hCurrentMenu);
+            DrawMenuBar(hWnd); // Vẽ lại menu
+            break;
+        case ID_LANGUAGES_VIETNAMESE:
+            hCurrentMenu = hMenuV;
+            SetMenu(hWnd, hCurrentMenu);
+            DrawMenuBar(hWnd); // Vẽ lại menu
+            break;
+        case ID_NGONNGU_TIENGANH:
+            hCurrentMenu = hMenuE;
+            SetMenu(hWnd, hCurrentMenu);
+            DrawMenuBar(hWnd); // Vẽ lại menu
+            break;
+        case ID_NGONNGU_TIENGVIET:
+            hCurrentMenu = hMenuV;
+            SetMenu(hWnd, hCurrentMenu);
+            DrawMenuBar(hWnd); // Vẽ lại menu
+            break;
+        case ID_THUMUC_DONG:
+            MessageBox(hWnd, L"Dong Thu Muc", L"Xac Nhan", MB_YESNO);
+            break;
+
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
+        }
         }
         break;
 	case WM_DESTROY: // Khi cửa sổ bị hủy
