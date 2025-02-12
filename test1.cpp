@@ -238,6 +238,48 @@ void Day_12_02_25_Ex3(HWND hWnd,HDC hdc, UINT message) {
     }
 }
 
+// Xu ly Timer
+void Day_12_02_25_Ex4(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+
+    HDC hdc;
+	int minutes = 50, seconds = 0;
+	TCHAR timeLeft[30];
+
+    switch (message)
+    {
+	case WM_CREATE:
+	{
+		// Khoi tao timer
+		SetTimer(hWnd, 1, 1000, NULL);
+		break;
+	}
+    case WM_TIMER:
+    {
+        if (seconds > 0 && seconds <= 50) {
+            seconds = seconds - 1;
+        }
+		else if (seconds == 0 && minutes > 0) {
+            minutes = minutes - 1;
+            seconds = 59;
+		}
+		else if (minutes == 0 && seconds == 0) {
+			KillTimer(hWnd, 1);
+		}
+		wsprintf(timeLeft, L"%d:%d", minutes, seconds); // tao chuoi thoi gian co dang timeLeft - Eg: 5:20
+
+		hdc = GetDC(hWnd);
+		//TextOut(hdc, 0, 0, timeLeft, wsprintf(timeLeft, L"%d:%d", minutes, seconds));
+		TextOut(hdc, 0, 0, timeLeft, 20); // Ve noi dung bien time left ra cua so tai vi tri (0, 0)
+
+		ReleaseDC(hWnd, hdc);
+
+		break;
+    }
+    default:
+        break;
+    }
+}
+
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
