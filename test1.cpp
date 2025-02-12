@@ -111,6 +111,44 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
+
+void Day_12_02_25(HDC hdc, int width, int height) {
+    // Ve 2 duong cheo, 1 pixel, mau green
+    HPEN hPenGreen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
+
+    // Hinh chu nhat lay but BLACK_PEN
+    HPEN hPenBlack = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+    //HPEN hPenBlack = GetStockObject(BLACK_PEN);
+
+    // Hinh elip net lien 3 pixel, mau RGB(255, 255, 0)
+    HPEN hPenYellow = CreatePen(PS_DOT, 3, RGB(255, 255, 0));
+
+
+    // Tính toán vị trí trung tâm
+    int centerX = width / 2;
+    int centerY = height / 2;
+
+    SelectObject(hdc, hPenBlack);
+    Rectangle(hdc, width / 8, height / 8, 7 * width / 8, 7 * height / 8);
+
+    SelectObject(hdc, hPenGreen);
+    // Vẽ 2 đoạn thẳng cắt chéo qua trung tâm
+    MoveToEx(hdc, 0, 0, NULL); // Góc trên trái
+    LineTo(hdc, width, height); // Góc dưới phải
+
+    MoveToEx(hdc, 0, height, NULL); // Góc dưới trái
+    LineTo(hdc, width, 0); // Góc trên phải
+
+    SelectObject(hdc, hPenYellow);
+    Ellipse(hdc, width / 8, height / 8, 7 * width / 8, 7 * height / 8);
+    RoundRect(hdc, width / 4, height / 4, 3 * width / 4, 3 * height / 4, 20, 10);
+
+	// destroy pen - thuong xu dung trong WM_DESTROY
+    DeleteObject(hPenGreen);
+    DeleteObject(hPenBlack);
+    DeleteObject(hPenYellow);
+}
+
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -152,21 +190,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
 
-        // Tính toán vị trí trung tâm
-        int centerX = width / 2;
-        int centerY = height / 2;
-
-        Rectangle(hdc, width / 8, height / 8, 7 * width / 8, 7 * height / 8);
-
-        // Vẽ 2 đoạn thẳng cắt chéo qua trung tâm
-        MoveToEx(hdc, 0, 0, NULL); // Góc trên trái
-        LineTo(hdc, width, height); // Góc dưới phải
-
-        MoveToEx(hdc, 0, height, NULL); // Góc dưới trái
-        LineTo(hdc, width, 0); // Góc trên phải
-        
-        Ellipse(hdc, width / 8, height / 8, 7 * width / 8, 7 * height / 8);
-        RoundRect(hdc, width / 4, height / 4, 3 * width / 4, 3 * height / 4, 20, 10);
+		Day_12_02_25(hdc, width, height);
 
         EndPaint(hWnd, &ps);
     }
