@@ -10,6 +10,7 @@
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+HMENU hMenuPopupSelectColor; // Menu chon mau cho hinh ve tiep theo
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -96,6 +97,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
 	hInst = hInstance; // Store instance handle in our global variable
+	hMenuPopupSelectColor = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MENU2)); // Load menu chon mau
 
 	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
@@ -112,11 +114,44 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 }
 
 // xu li ve hinh
-void xu_li_ve_hinh(HDC hdc, int hinh, int x_down, int y_down, int x_up, int y_up) {
+void xu_li_ve_hinh(HDC hdc, int hinh, int x_down, int y_down, int x_up, int y_up, int mau) {
 	// tao but
-	HPEN hPen = CreatePen(PS_SOLID, 3, RGB(0, 0, 0));
+	HPEN hPen;
+	switch (mau)
+	{
+		case 1: // Do
+		{
+			hPen = CreatePen(PS_SOLID, 3, RGB(255, 0, 0));
+			break;
+		}
+		case 2: // xanh
+		{
+			hPen = CreatePen(PS_SOLID, 3, RGB(0, 0, 255));
+			break;
+		}
+		default: // den
+			hPen = CreatePen(PS_SOLID, 3, RGB(0, 0, 0));
+			break;
+	}
 	// tao choi
 	HBRUSH hBrush = CreateSolidBrush(RGB(255, 0, 0));
+
+	switch (mau)
+	{
+		case 1: // Do
+		{
+			hBrush = CreateSolidBrush(RGB(255, 0, 0));
+			break;
+		}
+		case 2: // xanh
+		{
+			hBrush = CreateSolidBrush(RGB(0, 0, 255));
+			break;
+		}
+	default: // den
+		hBrush = CreateSolidBrush(RGB(0, 0, 0));
+		break;
+	}
 	// chon but
 	SelectObject(hdc, hPen);
 	// chon choi
@@ -153,6 +188,11 @@ void xu_li_ve_hinh(HDC hdc, int hinh, int x_down, int y_down, int x_up, int y_up
 			break;
 		}
 	}
+
+	// xoa but
+	DeleteObject(hPen);
+	// xoa choi
+	DeleteObject(hBrush);
 }
 
 //
@@ -169,11 +209,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	// bien xu dung ve
 	static int hinh;
+	static int mau;
 
 	static int x_down, y_down, x_up, y_up;
+
+	static int m = 0, s = 0;
+
+	static int width_window, height_window;
+
 	switch (message)
 	{
-		// nhan chuot trai la bat dau ve
+	// nhan chuot trai la bat dau ve
 	case WM_LBUTTONDOWN:
 	{
 		// lay toa do chuot nhan
@@ -190,8 +236,67 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		y_up = HIWORD(lParam);
 		// ve hinh
 		HDC hdc = GetDC(hWnd);
-		xu_li_ve_hinh(hdc, hinh, x_down, y_down, x_up, y_up);
+		xu_li_ve_hinh(hdc, hinh, x_down, y_down, x_up, y_up, mau);
 		ReleaseDC(hWnd, hdc);
+
+		break;
+	}
+	// nhan chuot phai xuat hien cua so chon mau
+	case WM_RBUTTONDOWN:
+	{
+		// lay toa do
+		POINT p;
+		p.x = LOWORD(lParam);
+		p.y = HIWORD(lParam);
+		// Chuyển đổi tọa độ máy khách sang tọa độ màn hình
+		ClientToScreen(hWnd, &p);
+		// Hiển thị menu
+		TrackPopupMenu(
+			GetSubMenu(hMenuPopupSelectColor, 0), 
+			TPM_RIGHTBUTTON, 
+			p.x, p.y, 0, 
+			hWnd, NULL
+		);
+
+		break;
+	}	
+
+	case WM_CREATE:
+	{
+		// Tao dong ho dem gio
+		SetTimer(hWnd, 1, 1000, NULL);
+
+		break;
+	}
+	// Tao dong ho dem gio
+	case WM_TIMER:
+	{
+		if (s == 59) {
+			m++;
+			s = 0;
+		}
+		else {
+			s++;
+		}
+		// Hien thi thoi gian
+		wchar_t str[100];
+		wsprintf(str, L"Time: %d:%d", m, s);
+
+		HDC hdc;
+		hdc = GetDC(hWnd);
+
+		TextOut(hdc, width_window - 120, height_window - 20, str, wcslen(str));
+
+		ReleaseDC(hWnd, hdc);
+
+		break;
+	}
+
+	// xu li cua so thay doi kich thuoc
+	case WM_SIZE:
+	{
+		width_window = LOWORD(lParam);
+		height_window = HIWORD(lParam);
 
 		break;
 	}
@@ -224,6 +329,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
+
+		case ID_CHONMAU_D:
+		{
+			mau = 1;
+
+			break;
+		}
+
+		case ID_CHONMAU_XANH:
+		{
+			mau = 2;
+
+			break;
+		}
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
@@ -238,6 +357,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	break;
 	case WM_DESTROY:
+
 		PostQuitMessage(0);
 		break;
 	default:

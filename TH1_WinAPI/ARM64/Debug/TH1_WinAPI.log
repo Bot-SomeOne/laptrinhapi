@@ -1,1 +1,3 @@
-﻿
+﻿  TH1_WinAPI.cpp
+C:\Users\v\source\repos\TH1_WinAPI\TH1_WinAPI.cpp(288,67): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  TH1_WinAPI.vcxproj -> C:\Users\v\source\repos\TH1_WinAPI\ARM64\Debug\TH1_WinAPI.exe
