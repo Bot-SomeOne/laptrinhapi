@@ -68,7 +68,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
+    wcex.style          = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
     wcex.lpfnWndProc    = WndProc;
     wcex.cbClsExtra     = 0;
     wcex.cbWndExtra     = 0;
@@ -111,7 +111,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
-
+// Xu dung HPEN
 void Day_12_02_25(HDC hdc, int width, int height) {
     // Ve 2 duong cheo, 1 pixel, mau green
     HPEN hPenGreen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
@@ -149,6 +149,7 @@ void Day_12_02_25(HDC hdc, int width, int height) {
     DeleteObject(hPenYellow);
 }
 
+// Xu dung HPEN va HBRUSH
 void Day_12_02_25_Ex2(HDC hdc, int width, int height) {
     HPEN hPenGreen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
     HPEN hPenBlack = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
@@ -187,6 +188,56 @@ void Day_12_02_25_Ex2(HDC hdc, int width, int height) {
 	DeleteObject(hBrushViolet);
 	DeleteObject(bBrushLightBlue);
 }
+
+// Xu dung fMouse - Thay the file proc bang file nay, thay mot vai bien thanh static
+void Day_12_02_25_Ex3(HWND hWnd,HDC hdc, UINT message) {
+
+    //static HDC hdc;
+    POINT pt[10000]; // static
+    int count = 0; // static
+
+    switch (message)
+    {
+    
+    case WM_LBUTTONDBLCLK:
+    {
+		InvalidateRect(hWnd, NULL, TRUE);
+        count = 0;
+        // luu cac diem anh
+        break;
+    }
+    case WM_LBUTTONDOWN:
+    {
+        
+        // luu cac diem anh
+		pt[count].x = LOWORD(GetMessagePos());
+		pt[count].y = HIWORD(GetMessagePos());
+
+		// ve 1 diem anhtai vi tri nhap chuot
+		SetPixel(hdc, pt[count].x, pt[count].y, RGB(255, 0, 0));
+        ReleaseDC(hWnd, hdc);
+		count++;
+
+        break;
+    }
+
+	case WM_RBUTTONDOWN:
+	{
+		// ve cac
+        for (int i = 0; i < count - 1; i++) {
+            for (int j = i + 1; j < count; j++) {
+                MoveToEx(hdc, pt[i].x, pt[i].y, NULL);
+                LineTo(hdc, pt[j].x, pt[j].y);
+            }
+        }
+		ReleaseDC(hWnd, hdc);
+		break;
+	}
+    default:
+        break;
+    }
+}
+
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -204,48 +255,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     static POINT pt;
 
-    static HDC hdc;
+	static HDC hdc; // handle device context
 	static int width, height;
     switch (message)
     {
-	case WM_SIZE: // Khi cửa sổ thay đổi kích thước
-		// Lấy kích thước cửa sổ
-		width = LOWORD(lParam);
-		height = HIWORD(lParam);
-		hdc = GetDC(hWnd);
-		// TODO
-
-		break;
-	case WM_LBUTTONDOWN: // Khi nhấn chuột trái
-		hdc = GetDC(hWnd);
-        // TODO
-		SetPixel(hdc, LOWORD(lParam), HIWORD(lParam), RGB(255, 0, 0));
-		ReleaseDC(hWnd, hdc); //  
-		break;
-
-	case WM_PAINT: // Khi cần vẽ lại cửa sổ
+    case WM_SIZE: // Khi cửa sổ thay đổi kích thước
     {
-        PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hWnd, &ps);
-
-        Day_12_02_25_Ex2(hdc, width, height);
-
-        EndPaint(hWnd, &ps);
+        // Lấy kích thước cửa sổ
+        width = LOWORD(lParam);
+        height = HIWORD(lParam);
+        hdc = GetDC(hWnd);
+        // TODO
     }
+		break;
+
+    case WM_LBUTTONDOWN: // Khi nhấn chuột trái
+    {
+        hdc = GetDC(hWnd);
+        // TODO
+        SetPixel(hdc, LOWORD(lParam), HIWORD(lParam), RGB(255, 0, 0));
+        ReleaseDC(hWnd, hdc); //
         break;
-	case WM_CREATE: // Khi cửa sổ được tạo
-        // Load menu từ resource
-        hMenuE = LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDC_TEST1));
-        hMenuV = LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MENU1));
-        if (hMenuE) {
-            hCurrentMenu = hMenuE;
-            SetMenu(hWnd, hMenuE); // Gắn menu vào cửa sổ
-        }
-        else {
-            MessageBox(hWnd, L"Không thể load menu.", L"Lỗi", MB_ICONERROR);
-        }
-        break;
-	case WM_RBUTTONDOWN: { // Khi nhấn chuột phải
+    }
+
+    case WM_RBUTTONDOWN: { // Khi nhấn chuột phải
         // Lấy vị trí chuột
         POINT pt;
         pt.x = LOWORD(lParam);
@@ -265,6 +298,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
     }
+
+	case WM_PAINT: // Khi cần vẽ lại cửa sổ
+    {
+        /*PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWnd, &ps);
+
+        Day_12_02_25_Ex2(hdc, width, height);
+
+        EndPaint(hWnd, &ps);*/
+    }
+        break;
+    case WM_CREATE: // Khi cửa sổ được tạo
+    {
+        // Load menu từ resource
+        hMenuE = LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDC_TEST1));
+        hMenuV = LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MENU1));
+        if (hMenuE) {
+            hCurrentMenu = hMenuE;
+            SetMenu(hWnd, hMenuE); // Gắn menu vào cửa sổ
+        }
+        else {
+            MessageBox(hWnd, L"Không thể load menu.", L"Lỗi", MB_ICONERROR);
+        }
+    }
+        break;
 
 	case WM_COMMAND: // Khi có lệnh từ menu
         {
@@ -310,17 +368,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         }
         break;
-	case WM_DESTROY: // Khi cửa sổ bị hủy
+    case WM_DESTROY: // Khi cửa sổ bị hủy
+    {
         PostQuitMessage(0);
+    }
         break; 
-	case WM_CLOSE: // Khi cửa sổ được đóng
+    case WM_CLOSE: // Khi cửa sổ được đóng
+    {
         if (MessageBox(hWnd, L"Bạn có chắc chắn muốn thoát?", L"Xác nhận", MB_YESNO | MB_ICONQUESTION) == IDYES) {
             PostQuitMessage(0);
         }
+    }
         break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
+    
+	//Day_12_02_25_Ex3(hWnd, hdc, message);
+
     return 0;
 }
 
