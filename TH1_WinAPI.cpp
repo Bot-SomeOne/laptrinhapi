@@ -195,6 +195,150 @@ void xu_li_ve_hinh(HDC hdc, int hinh, int x_down, int y_down, int x_up, int y_up
 	DeleteObject(hBrush);
 }
 
+// CreateGroupBoxShape
+void CreateGroupBoxShape(HWND hwnd, HINSTANCE hInstance) {
+	HWND hGroupShape = CreateWindowEx(0, L"BUTTON", L"Chọn hình",
+		WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
+		20, 20, 120, 60, hwnd, NULL, hInstance, NULL);
+
+	// Button vẽ hình chữ nhật
+	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+		30, 40, 40, 30, hwnd, (HMENU)ID_SELECT_SHAPE_RECTANGLE, hInstance, NULL);
+
+	// Button vẽ hình elip
+	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+		80, 40, 40, 30, hwnd, (HMENU)ID_SELECT_SHAPE_ELIPSE, hInstance, NULL);
+}
+
+void DrawItemShapeButton(LPDRAWITEMSTRUCT pDIS) {
+	HPEN hPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));  // Viền đen
+	HBRUSH hBrush = CreateSolidBrush(RGB(220, 220, 220)); // Màu xám nền
+
+	SelectObject(pDIS->hDC, hPen);
+	SelectObject(pDIS->hDC, hBrush);
+
+	// Vẽ nền button
+	Rectangle(pDIS->hDC, pDIS->rcItem.left, pDIS->rcItem.top, pDIS->rcItem.right, pDIS->rcItem.bottom);
+
+	// Chọn màu vẽ hình
+	SelectObject(pDIS->hDC, GetStockObject(WHITE_BRUSH));
+
+	// Vẽ hình dựa trên ID của button
+	if (pDIS->CtlID == ID_SELECT_SHAPE_RECTANGLE) {
+		Rectangle(pDIS->hDC, pDIS->rcItem.left + 8, pDIS->rcItem.top + 8,
+			pDIS->rcItem.right - 8, pDIS->rcItem.bottom - 8);
+	}
+	else if (pDIS->CtlID == ID_SELECT_SHAPE_ELIPSE) {
+		Ellipse(pDIS->hDC, pDIS->rcItem.left + 8, pDIS->rcItem.top + 8,
+			pDIS->rcItem.right - 8, pDIS->rcItem.bottom - 8);
+	}
+
+	// Giải phóng tài nguyên
+	DeleteObject(hBrush);
+	DeleteObject(hPen);
+}
+
+// Tạo GroupBox chọn màu nền
+void CreateGroupBoxColorBackgroupShapw(HWND hwnd, HINSTANCE hInstance) {
+	HWND hGroupColor = CreateWindowEx(0, L"BUTTON", L"Chọn màu",
+		WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
+		150, 20, 260, 60, hwnd, NULL, hInstance, NULL);
+
+	// Tạo các button màu với BS_OWNERDRAW
+	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+		160, 40, 40, 30, hwnd, (HMENU)ID_SELECT_COLOR_BACKGROUND_RED, hInstance, NULL);
+
+	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+		210, 40, 40, 30, hwnd, (HMENU)ID_SELECT_COLOR_BACKGROUND_GREEN, hInstance, NULL);
+
+	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+		260, 40, 40, 30, hwnd, (HMENU)ID_SELECT_COLOR_BACKGROUND_BLUE, hInstance, NULL);
+
+	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+		310, 40, 40, 30, hwnd, (HMENU)ID_SELECT_COLOR_BACKGROUND_YELLOW, hInstance, NULL);
+
+	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+		360, 40, 40, 30, hwnd, (HMENU)ID_SELECT_COLOR_BACKGROUND_CYAN, hInstance, NULL);
+}
+
+// Tạo GroupBox chọn màu viền
+void CreateGroupBoxColorBorderShapw(HWND hwnd, HINSTANCE hInstance) {
+	HWND hGroupBorder = CreateWindowEx(0, L"BUTTON", L"Chọn màu đường viền",
+		WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
+		420, 20, 260, 60, hwnd, NULL, hInstance, NULL);  // Điều chỉnh tọa độ X
+
+	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+		430, 40, 40, 30, hwnd, (HMENU)ID_SELECT_COLOR_BORDER_RED, hInstance, NULL);
+
+	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+		480, 40, 40, 30, hwnd, (HMENU)ID_SELECT_COLOR_BORDER_GREEN, hInstance, NULL);
+
+	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+		530, 40, 40, 30, hwnd, (HMENU)ID_SELECT_COLOR_BORDER_BLUE, hInstance, NULL);
+
+	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+		580, 40, 40, 30, hwnd, (HMENU)ID_SELECT_COLOR_BORDER_YELLOW, hInstance, NULL);
+
+	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+		630, 40, 40, 30, hwnd, (HMENU)ID_SELECT_COLOR_BORDER_CYAN, hInstance, NULL);
+}
+
+void DrawItemColorButton(LPARAM lParam) {
+	LPDRAWITEMSTRUCT pDIS = (LPDRAWITEMSTRUCT)lParam;
+	HBRUSH hBrush = NULL;
+	HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0)); // Viền đen
+
+	switch (pDIS->CtlID) {  // Kiểm tra ID button
+		// Màu nền
+	case ID_SELECT_COLOR_BACKGROUND_RED:
+		hBrush = CreateSolidBrush(RGB(255, 0, 0)); // Đỏ
+		break;
+	case ID_SELECT_COLOR_BACKGROUND_GREEN:
+		hBrush = CreateSolidBrush(RGB(0, 255, 0)); // Xanh lá
+		break;
+	case ID_SELECT_COLOR_BACKGROUND_BLUE:
+		hBrush = CreateSolidBrush(RGB(0, 0, 255)); // Xanh dương
+		break;
+	case ID_SELECT_COLOR_BACKGROUND_YELLOW:
+		hBrush = CreateSolidBrush(RGB(255, 255, 0)); // Vàng
+		break;
+	case ID_SELECT_COLOR_BACKGROUND_CYAN:
+		hBrush = CreateSolidBrush(RGB(0, 255, 255)); // Cyan
+		break;
+
+		// Màu đường viền
+	case ID_SELECT_COLOR_BORDER_RED:
+		hBrush = CreateSolidBrush(RGB(255, 0, 0)); // Đỏ
+		break;
+	case ID_SELECT_COLOR_BORDER_GREEN:
+		hBrush = CreateSolidBrush(RGB(0, 255, 0)); // Xanh lá
+		break;
+	case ID_SELECT_COLOR_BORDER_BLUE:
+		hBrush = CreateSolidBrush(RGB(0, 0, 255)); // Xanh dương
+		break;
+	case ID_SELECT_COLOR_BORDER_YELLOW:
+		hBrush = CreateSolidBrush(RGB(255, 255, 0)); // Vàng
+		break;
+	case ID_SELECT_COLOR_BORDER_CYAN:
+		hBrush = CreateSolidBrush(RGB(0, 255, 255)); // Cyan
+		break;
+	default:
+		return;
+	}
+
+	// Chọn bút và chổi vẽ
+	SelectObject(pDIS->hDC, hPen);
+	SelectObject(pDIS->hDC, hBrush);
+
+	// Vẽ button
+	Rectangle(pDIS->hDC, pDIS->rcItem.left, pDIS->rcItem.top, pDIS->rcItem.right, pDIS->rcItem.bottom);
+
+	// Giải phóng tài nguyên
+	DeleteObject(hBrush);
+	DeleteObject(hPen);
+}
+
+
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -219,6 +363,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	switch (message)
 	{
+	case WM_DRAWITEM:
+	{
+		LPDRAWITEMSTRUCT pDIS = (LPDRAWITEMSTRUCT)lParam; // truy cập thông tin
+
+		// kiem tra ton tai khong
+		if (pDIS->CtlID == ID_SELECT_SHAPE_RECTANGLE || pDIS->CtlID == ID_SELECT_SHAPE_ELIPSE) {
+			DrawItemShapeButton(pDIS);  // Xử lý vẽ hình chữ nhật & elip
+		}
+
+		DrawItemColorButton(lParam);
+		break;
+	}
+
 	// nhan chuot trai la bat dau ve
 	case WM_LBUTTONDOWN:
 	{
@@ -266,6 +423,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Tao dong ho dem gio
 		SetTimer(hWnd, 1, 1000, NULL);
 
+		// Tao group box chon hinh
+		CreateGroupBoxShape(hWnd, ((LPCREATESTRUCT)lParam)->hInstance);
+		// Tao group box chon mau nen
+		CreateGroupBoxColorBackgroupShapw(hWnd, ((LPCREATESTRUCT)lParam)->hInstance);
+		// Tao group box chon mau duong vien
+		CreateGroupBoxColorBorderShapw(hWnd, ((LPCREATESTRUCT)lParam)->hInstance);
+
+		// Cập nhật giao diện để đảm bảo button hiển thị màu ngay lập tức
+		//InvalidateRect(hWnd, NULL, TRUE);
 		break;
 	}
 	// Tao dong ho dem gio

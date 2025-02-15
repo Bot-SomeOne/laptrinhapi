@@ -194,6 +194,7 @@
     <ResourceCompile Include="TH1_WinAPI.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="icon1.ico" />
     <Image Include="small.ico" />
     <Image Include="TH1_WinAPI.ico" />
   </ItemGroup>
