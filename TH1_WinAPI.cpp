@@ -421,6 +421,23 @@ void DrawShape(HDC hdc, int x_down, int y_down, int x_up, int y_up) {
 		Ellipse(hdc, x_down, y_down, x_up, y_up);
 		break;
 
+	case ID_HINH_DUONGTHANG: // Ve duong thang
+		MoveToEx(hdc, x_down, y_down, NULL);
+		LineTo(hdc, x_up, y_up);
+		break;
+
+	case ID_HINH_TAMGIACVUONG: // Ve tam giac vuong
+	{
+		POINT p[3];
+		p[0].x = x_down;
+		p[0].y = y_down;
+		p[1].x = x_down;
+		p[1].y = y_up;
+		p[2].x = x_up;
+		p[2].y = y_up;
+		Polygon(hdc, p, 3);
+		break;
+	}
 	default:
 		// Không vẽ nếu không chọn hình
 		break;
@@ -430,8 +447,6 @@ void DrawShape(HDC hdc, int x_down, int y_down, int x_up, int y_up) {
 	DeleteObject(hPen);
 	DeleteObject(hBrush);
 }
-
-
 
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
@@ -486,7 +501,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		y_up = HIWORD(lParam);
 		// ve hinh
 		HDC hdc = GetDC(hWnd);
-		xu_li_ve_hinh(hdc, hinh, x_down, y_down, x_up, y_up, mau);
 	
 		DrawShape(hdc, x_down, y_down, x_up, y_up);
 
