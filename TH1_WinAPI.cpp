@@ -12,6 +12,15 @@ WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 HMENU hMenuPopupSelectColor; // Menu chon mau cho hinh ve tiep theo
 
+struct DrawingState {
+	int shape;         // Hình đang chọn
+	COLORREF fillColor;  // Màu nền hình
+	COLORREF borderColor; // Màu viền hình
+};
+// Biến toàn cục lưu trạng thái vẽ - Mac dinh la ve hinh chu nhat, mau nen do, mau vien do
+DrawingState currentDrawingState = { ID_SELECT_SHAPE_RECTANGLE, RGB(255, 0, 0), RGB(255, 0, 0) };
+
+
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
@@ -240,15 +249,15 @@ void DrawItemShapeButton(LPDRAWITEMSTRUCT pDIS) {
 
 // Tạo GroupBox chọn màu nền
 void CreateGroupBoxColorBackgroupShapw(HWND hwnd, HINSTANCE hInstance) {
-	HWND hGroupColor = CreateWindowEx(0, L"BUTTON", L"Chọn màu",
+	HWND hGroupColor = CreateWindowEx(0, L"BUTTON", L"Chọn màu nền",
 		WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
 		150, 20, 260, 60, hwnd, NULL, hInstance, NULL);
 
-	// Tạo các button màu với BS_OWNERDRAW
+	// Tạo các button 
 	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
 		160, 40, 40, 30, hwnd, (HMENU)ID_SELECT_COLOR_BACKGROUND_RED, hInstance, NULL);
 
-	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW ,
 		210, 40, 40, 30, hwnd, (HMENU)ID_SELECT_COLOR_BACKGROUND_GREEN, hInstance, NULL);
 
 	CreateWindowEx(0, L"BUTTON", L"", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
@@ -283,6 +292,7 @@ void CreateGroupBoxColorBorderShapw(HWND hwnd, HINSTANCE hInstance) {
 		630, 40, 40, 30, hwnd, (HMENU)ID_SELECT_COLOR_BORDER_CYAN, hInstance, NULL);
 }
 
+// Ve mau nen cho cac button trong group box
 void DrawItemColorButton(LPARAM lParam) {
 	LPDRAWITEMSTRUCT pDIS = (LPDRAWITEMSTRUCT)lParam;
 	HBRUSH hBrush = NULL;
@@ -338,6 +348,90 @@ void DrawItemColorButton(LPARAM lParam) {
 	DeleteObject(hPen);
 }
 
+// Xử lý các hành động khi bấm vào group box
+void ExecClickInGroupBox(int id, HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	switch (id) {
+		// Xử lý chọn hình
+	case ID_SELECT_SHAPE_RECTANGLE:
+		currentDrawingState.shape = ID_SELECT_SHAPE_RECTANGLE;
+		break;
+	case ID_SELECT_SHAPE_ELIPSE:
+		currentDrawingState.shape = ID_SELECT_SHAPE_ELIPSE;
+		break;
+
+		// Xử lý chọn màu nền
+	case ID_SELECT_COLOR_BACKGROUND_RED:
+		currentDrawingState.fillColor = RGB(255, 0, 0);
+		break;
+	case ID_SELECT_COLOR_BACKGROUND_GREEN:
+		currentDrawingState.fillColor = RGB(0, 255, 0);
+		break;
+	case ID_SELECT_COLOR_BACKGROUND_BLUE:
+		currentDrawingState.fillColor = RGB(0, 0, 255);
+		break;
+	case ID_SELECT_COLOR_BACKGROUND_YELLOW:
+		currentDrawingState.fillColor = RGB(255, 255, 0);
+		break;
+	case ID_SELECT_COLOR_BACKGROUND_CYAN:
+		currentDrawingState.fillColor = RGB(0, 255, 255);
+		break;
+
+		// Xử lý chọn màu viền
+	case ID_SELECT_COLOR_BORDER_RED:
+		currentDrawingState.borderColor = RGB(255, 0, 0);
+		break;
+	case ID_SELECT_COLOR_BORDER_GREEN:
+		currentDrawingState.borderColor = RGB(0, 255, 0);
+		break;
+	case ID_SELECT_COLOR_BORDER_BLUE:
+		currentDrawingState.borderColor = RGB(0, 0, 255);
+		break;
+	case ID_SELECT_COLOR_BORDER_YELLOW:
+		currentDrawingState.borderColor = RGB(255, 255, 0);
+		break;
+	case ID_SELECT_COLOR_BORDER_CYAN:
+		currentDrawingState.borderColor = RGB(0, 255, 255);
+		break;
+
+	default:
+		DefWindowProc(hwnd, message, wParam, lParam);
+		break;
+	}
+
+}
+
+
+// Xu ly ve hinh 
+void DrawShape(HDC hdc, int x_down, int y_down, int x_up, int y_up) {
+	// Tạo bút vẽ viền
+	HPEN hPen = CreatePen(PS_SOLID, 3, currentDrawingState.borderColor);
+	SelectObject(hdc, hPen);
+
+	// Tạo chổi tô màu nền
+	HBRUSH hBrush = CreateSolidBrush(currentDrawingState.fillColor);
+	SelectObject(hdc, hBrush);
+
+	// Xử lý vẽ hình dựa trên lựa chọn của người dùng
+	switch (currentDrawingState.shape) {
+	case ID_SELECT_SHAPE_RECTANGLE:  // Vẽ hình chữ nhật
+		Rectangle(hdc, x_down, y_down, x_up, y_up);
+		break;
+
+	case ID_SELECT_SHAPE_ELIPSE:  // Vẽ hình elip
+		Ellipse(hdc, x_down, y_down, x_up, y_up);
+		break;
+
+	default:
+		// Không vẽ nếu không chọn hình
+		break;
+	}
+
+	// Giải phóng tài nguyên
+	DeleteObject(hPen);
+	DeleteObject(hBrush);
+}
+
+
 
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
@@ -352,15 +446,14 @@ void DrawItemColorButton(LPARAM lParam) {
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	// bien xu dung ve
-	static int hinh;
-	static int mau;
+	static int hinh, mau_nen, mau_duong_vien;
+	static int mau; // TODO giu lai de code cu khong anh huong
 
 	static int x_down, y_down, x_up, y_up;
 
 	static int m = 0, s = 0;
 
 	static int width_window, height_window;
-
 	switch (message)
 	{
 	case WM_DRAWITEM:
@@ -394,6 +487,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// ve hinh
 		HDC hdc = GetDC(hWnd);
 		xu_li_ve_hinh(hdc, hinh, x_down, y_down, x_up, y_up, mau);
+	
+		DrawShape(hdc, x_down, y_down, x_up, y_up);
+
 		ReleaseDC(hWnd, hdc);
 
 		break;
@@ -510,22 +606,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		default:
-			return DefWindowProc(hWnd, message, wParam, lParam);
+			// handle click in group box
+			ExecClickInGroupBox(wmId, hWnd, message, wParam, lParam);
+			break;
 		}
+
+		break;
 	}
-	break;
 	case WM_PAINT:
 	{
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
 		// TODO: Add any drawing code that uses hdc here...
 		EndPaint(hWnd, &ps);
+		break;
 	}
-	break;
+	
 	case WM_DESTROY:
-
+	{
 		PostQuitMessage(0);
 		break;
+	}
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
